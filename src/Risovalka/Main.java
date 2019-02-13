@@ -9,9 +9,9 @@ public class Main {
   public static void main(String[] args) {
     BufferedImage image = new BufferedImage(600, 200, BufferedImage.TYPE_BYTE_GRAY);
     try {
-      drawStar(100, 100, 80, image, 0);
-      drawStar(300, 100, 80, image, 1);
-      drawStar(500, 100, 80, image, 2);
+      drawStar(100, 100, 80, 15, image, 0);
+      drawStar(300, 100, 80, 15, image, 1);
+      drawStar(500, 100, 80, 15, image, 2);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -25,8 +25,15 @@ public class Main {
     System.out.println("privet");
   }
 
-  static void drawStar(int x0, int y0, int r, BufferedImage image, int method) {
-    int n = 15;
+  /**
+   * @param x0 центр звезды по оси x
+   * @param y0 центр звезды по оси y
+   * @param r радиус звезды
+   * @param n количество лучей
+   * @param method 0 (базовый), 1 (Брезензем), 2 (Ву)
+   */
+  static void drawStar(int x0, int y0, int r, int n, BufferedImage image, int method) {
+//    по определению синуса и косинуса найдем концы лучей
     int[] x = new int[n];
     for (int i = 0; i < n; i++) {
       x[i] = x0 + (int)(Math.cos(2 * Math.PI / n * i) * r);
@@ -35,6 +42,7 @@ public class Main {
     for (int i = 0; i < n; i++) {
       y[i] = y0 + (int)(Math.sin(2 * Math.PI / n * i) * r);
     }
+//    нарисуем каждый луч отдельно
     for (int i = 0; i < n; i++) {
       switch (method) {
         case 0:

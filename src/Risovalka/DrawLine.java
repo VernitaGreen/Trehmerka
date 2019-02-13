@@ -6,29 +6,26 @@ import java.io.BufferedReader;
 
 public class DrawLine {
   static void drawBadLine(int x0, int x1, int y0, int y1, BufferedImage image) {
-    boolean steep = false;
-//    смотрим наклон прямой
+//    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
-      steep = true;
-      int tmp = x0;
-      x0 = y0;
-      y0 = tmp;
-      tmp = x1;
-      x1 = y1;
-      y1 = tmp;
+      drawBadLine(y0, y1, x0, x1, image, true);
+    } else {
+      drawBadLine(x0, x1, y0, y1, image, false);
     }
-//    смотрим направление прямой относительно х
+  }
+
+  static void drawBadLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+//    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
-      int tmp = x0;
-      x0 = x1;
-      x1 = tmp;
-      tmp = y0;
-      y0 = y1;
-      y1 = tmp;
+      drawBadLine(x1, x0, y1, y0, image, steep);
+      return;
     }
+//    рассматриваем каждую координату на выбранной оси
     for (int x = x0; x < x1; x++) {
+//      находим другую координату по уравнению прямой
       double tmp = (x - x0) * (y1 - y0);
       int y = (int) Math.round(tmp / (x1 - x0) + y0);
+//      взависимости от наклона прямой красим нужный пиксель
       if (steep) {
         image.setRGB(y, x, Color.WHITE.getRGB());
       } else {
@@ -38,38 +35,40 @@ public class DrawLine {
   }
 
   static void drawBresenhamsLine(int x0, int x1, int y0, int y1, BufferedImage image) {
-    boolean steep = false;
-//    смотрим наклон прямой
+//    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
-      steep = true;
-      int tmp = x0;
-      x0 = y0;
-      y0 = tmp;
-      tmp = x1;
-      x1 = y1;
-      y1 = tmp;
+      drawBresenhamsLine(y0, y1, x0, x1, image, true);
+    } else {
+      drawBresenhamsLine(x0, x1, y0, y1, image, false);
     }
-//    смотрим направление прямой относительно х
+  }
+
+  static void drawBresenhamsLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+//    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
-      int tmp = x0;
-      x0 = x1;
-      x1 = tmp;
-      tmp = y0;
-      y0 = y1;
-      y1 = tmp;
+      drawBresenhamsLine(x1, x0, y1, y0, image, steep);
+      return;
     }
+//    находим изменение по обеим осям
     int dx = x1 - x0;
     int dy = y1 - y0;
+//    будем накапливать ошибку изменения по оси y
     int error = 0;
+//    засетим текущий y начальным значением
     int y = y0;
+//    и знак изменения текущего y
     int sy = y1 > y0 ? 1 : -1;
+//    рассмотрим каждый пиксель оси x
     for (int x = x0; x < x1; x++) {
+//      взависимости от наклона прямой красим нужный пиксель
       if (steep) {
         image.setRGB(y, x, Color.WHITE.getRGB());
       } else {
         image.setRGB(x, y, Color.WHITE.getRGB());
       }
+//      накапливаем ошибку изменения текущего y
       error += Math.abs(dy);
+//      если ошибка перевалила за границу клетки, инкрементим текущий y и уменьшаем ошибку
       if (2 * error > Math.abs(dx)) {
         y += sy;
         error -= dx;
@@ -82,35 +81,36 @@ public class DrawLine {
   }
 
   static void drawWuLine(int x0, int x1, int y0, int y1, BufferedImage image) {
-    boolean steep = false;
-//    смотрим наклон прямой
+//    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
-      steep = true;
-      int tmp = x0;
-      x0 = y0;
-      y0 = tmp;
-      tmp = x1;
-      x1 = y1;
-      y1 = tmp;
+      drawWuLine(y0, y1, x0, x1, image, true);
+    } else {
+      drawWuLine(x0, x1, y0, y1, image, false);
     }
-//    смотрим направление прямой относительно х
+  }
+
+  static void drawWuLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+//    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
-      int tmp = x0;
-      x0 = x1;
-      x1 = tmp;
-      tmp = y0;
-      y0 = y1;
-      y1 = tmp;
+      drawWuLine(x1, x0, y1, y0, image, steep);
+      return;
     }
+//    находим изменение по обеим осям
     int dx = x1 - x0;
     int dy = y1 - y0;
+//    будем накапливать ошибку изменения по оси y
     double derror = 1.0 * dy / dx;
     double error = 0;
+//    засетим текущий y и знак его изменения
     int y = y0;
     int sy = y1 > y0 ? 1 : -1;
+//    рассмотрим каждый пиксель оси x
     for (int x = x0; x < x1; x++) {
+//      введем 2 цвета в зависимости от текущей ошибки
       int c1 = (int) (255 * (1 - 0.5 * error));
       int c2 = (int) (255 * Math.min(1, (1.5 * error)));
+//      рассмотрим 2 соседние точки и посетим в зависимости от наклона прямой
+//      также будем красить, если только текущий цвет этой клетки бледнее выбранного нами
       if (steep && c1 > new Color(image.getRGB(y, x)).getRed()) {
         image.setRGB(y, x, new Color(c1, c1, c1).getRGB());
       } else if (!steep && c1 > new Color(image.getRGB(x, y)).getRed()) {
@@ -121,7 +121,9 @@ public class DrawLine {
       } else if (!steep && c2 > new Color(image.getRGB(x, y + sy)).getRed()) {
         image.setRGB(x, y + sy, new Color(c2, c2, c2).getRGB());
       }
+//      накапливаем ошибку
       error += Math.abs(derror);
+//      если ошибка перевалила за границу, то увеличиваем y и уменьшаем ошибку
       if (error > 1) {
         y += sy;
         error--;
