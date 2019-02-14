@@ -3,6 +3,8 @@ package base;
 import java.util.Objects;
 
 public class Point2D {
+  static final double EPS = 1e-6;
+
   public final double x;
   public final double y;
 
@@ -28,8 +30,8 @@ public class Point2D {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Point2D point2DInt = (Point2D) o;
-    return x == point2DInt.x &&
-        y == point2DInt.y;
+    return Math.abs(x - point2DInt.x) < EPS
+        && Math.abs(y - point2DInt.y) < EPS;
   }
 
   @Override
