@@ -8,7 +8,7 @@ public class Ray {
 
   public Ray(Vector r0, Vector e) {
     this.p0 = r0;
-    this.e = e.normalize();
+    this.e = G.normalize(e);
   }
 
   @Override
@@ -31,25 +31,5 @@ public class Ray {
         "p0=" + p0 +
         ", e=" + e +
         '}';
-  }
-
-  public Vector intersect(Plane plane) {
-    double a = plane.n.dotProduct(plane.r0.subtract(p0));
-    double b = plane.n.dotProduct(e);
-
-    if (Vector.doubleEquality(a, 0)) { // in the same plane
-      return p0;
-    }
-
-    if (Vector.doubleEquality(b, 0)) { // in a parallel plane
-      return null;
-    }
-
-    double t = a / b;
-    if (t >= 0) { // intersects in the positive direction
-      return p0.add(e.scale(t));
-    } else { // negative direction
-      return null;
-    }
   }
 }
