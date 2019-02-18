@@ -1,10 +1,16 @@
 package Risovalka;
 
+import base.Point2DInt;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 
 public class DrawLine {
+  static void drawBadLine(Point2DInt a, Point2DInt b, BufferedImage image) {
+    drawBadLine(a.x, b.x, a.y, b.y, image);
+  }
+
   static void drawBadLine(int x0, int x1, int y0, int y1, BufferedImage image) {
 //    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
@@ -14,7 +20,7 @@ public class DrawLine {
     }
   }
 
-  static void drawBadLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+  static private void drawBadLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
 //    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
       drawBadLine(x1, x0, y1, y0, image, steep);
@@ -34,6 +40,10 @@ public class DrawLine {
     }
   }
 
+  static void drawBresenhamsLine(Point2DInt a, Point2DInt b, BufferedImage image) {
+    drawBresenhamsLine(a.x, b.x, a.y, b.y, image);
+  }
+
   static void drawBresenhamsLine(int x0, int x1, int y0, int y1, BufferedImage image) {
 //    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
@@ -43,7 +53,7 @@ public class DrawLine {
     }
   }
 
-  static void drawBresenhamsLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+  static private void drawBresenhamsLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
 //    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
       drawBresenhamsLine(x1, x0, y1, y0, image, steep);
@@ -80,6 +90,10 @@ public class DrawLine {
 
   }
 
+  static void drawWuLine(Point2DInt a, Point2DInt b, BufferedImage image) {
+    drawWuLine(a.x, b.x, a.y, b.y, image);
+  }
+
   static void drawWuLine(int x0, int x1, int y0, int y1, BufferedImage image) {
 //    смотрим наклон прямой, будем итерироваться по более продолжительной оси
     if (Math.abs(x0 - x1) < Math.abs(y0 - y1)) {
@@ -89,7 +103,7 @@ public class DrawLine {
     }
   }
 
-  static void drawWuLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
+  static private void drawWuLine(int x0, int x1, int y0, int y1, BufferedImage image, boolean steep) {
 //    смотрим направление прямой, будем идти слева направо
     if (x0 > x1) {
       drawWuLine(x1, x0, y1, y0, image, steep);
@@ -107,8 +121,8 @@ public class DrawLine {
 //    рассмотрим каждый пиксель оси x
     for (int x = x0; x < x1; x++) {
 //      введем 2 цвета в зависимости от текущей ошибки
-      int c1 = (int) (255 * (1 - 0.5 * error));
-      int c2 = (int) (255 * Math.min(1, (1.5 * error)));
+      int c1 = (int) (255 * Math.min(1, 1.5 * (1 - error)));
+      int c2 = (int) (255 * Math.min(1, 1.5 * (error)));
 //      рассмотрим 2 соседние точки и посетим в зависимости от наклона прямой
 //      также будем красить, если только текущий цвет этой клетки бледнее выбранного нами
       if (steep && c1 > new Color(image.getRGB(y, x)).getRed()) {

@@ -1,5 +1,8 @@
 package Risovalka;
 
+import base.Point2D;
+import base.Point2DInt;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,9 +12,9 @@ public class Main {
   public static void main(String[] args) {
     BufferedImage image = new BufferedImage(600, 200, BufferedImage.TYPE_BYTE_GRAY);
     try {
-      drawStar(100, 100, 80, 15, image, 0);
-      drawStar(300, 100, 80, 15, image, 1);
-      drawStar(500, 100, 80, 15, image, 2);
+      drawStar(new Point2DInt(100, 100), 80, 15, image, 0);
+      drawStar(new Point2DInt(300, 100), 80, 15, image, 1);
+      drawStar(new Point2DInt(500, 100), 80, 15, image, 2);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -23,6 +26,10 @@ public class Main {
       e.printStackTrace();
     }
     System.out.println("privet");
+  }
+
+  static void drawStar(Point2DInt a, int r, int n, BufferedImage image, int method) {
+    drawStar(a.x, a.y, r, n, image, method);
   }
 
   /**
