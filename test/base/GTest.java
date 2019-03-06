@@ -25,7 +25,6 @@ public class GTest {
 
     assertNull(G.intersect(plane, new Ray(new Vector(0, 0, 1), new Vector(0, 1, 1))));
 
-
 //    тесты ники
     Plane plane1 = new Plane(new Vector(2, 0, 5), new Vector(0, 0, 1));
 
@@ -33,5 +32,11 @@ public class GTest {
         G.intersect(plane1, new Ray(new Vector(4, 0, 2), new Vector(2, 0, 3))),
         new Vector(6, 0, 5)
     );
+
+    assertEquals(
+        G.intersect(
+            new Plane(new Vector(0.5, 0.5, 0.5), new Vector(1, 1, 1)),
+            new Ray(new Vector(0, 0, 0), new Vector(1, 1, 1))),
+        new Vector(0.5, 0.5, 0.5));
   }
 }
