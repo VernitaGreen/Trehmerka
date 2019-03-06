@@ -13,8 +13,10 @@ import base.Polygon;
 import base.Vector;
 
 public class ObjReader {
-  static Pattern lineV = Pattern.compile("v (\\S+) (\\S+) (\\S+)");
-  static Pattern lineF = Pattern.compile("f (\\S+) (\\S+) (\\S+)");
+  static Pattern vertexPattern = Pattern.compile("v (\\S+) (\\S+) (\\S+)");
+  static Pattern vertexTexturePattern = Pattern.compile("vt (\\S+) (\\S+) (\\S+)");
+  static Pattern vertexNormalPattern = Pattern.compile("vn (\\S+) (\\S+) (\\S+)");
+  static Pattern polygonPattern = Pattern.compile("f (\\S+) (\\S+) (\\S+)");
 
   public static List<Polygon> parseFile(String filename) throws IOException {
     byte[] encoded = Files.readAllBytes(Paths.get(filename));
@@ -28,7 +30,9 @@ public class ObjReader {
     Matcher m;
 
     for (String line : s.split("\n")) {
-      m = lineV.matcher(line);
+      line = line.trim();
+
+      m = vertexPattern.matcher(line);
       if (m.matches()) {
         try {
           double x = Double.parseDouble(m.group(1));
@@ -37,17 +41,17 @@ public class ObjReader {
 
           vectors.add(new Vector(x, y, z));
         } catch (Exception e) {
-          // :(
+          e.printStackTrace();
         }
         continue;
       }
 
-      m = lineF.matcher(line);
+      m = polygonPattern.matcher(line);
       if (m.matches()) {
         try {
-          int x_i = Integer.parseInt(m.group(1));
-          int y_i = Integer.parseInt(m.group(2));
-          int z_i = Integer.parseInt(m.group(3));
+          int x_i = Integer.parseInt(m.group(1).split("/")[0]);
+          int y_i = Integer.parseInt(m.group(2).split("/")[0]);
+          int z_i = Integer.parseInt(m.group(3).split("/")[0]);
 
           polygons.add(new Polygon(
               vectors.get(x_i - 1),
@@ -55,9 +59,8 @@ public class ObjReader {
               vectors.get(z_i - 1)
           ));
         } catch (Exception e) {
-          // :(
+          e.printStackTrace();
         }
-        continue;
       }
     }
 
@@ -65,7 +68,7 @@ public class ObjReader {
   }
 
   public static void main(String[] args) {
-    Matcher matcher = lineV.matcher("v 1 2 3");
+    Matcher matcher = vertexPattern.matcher("v 1 2 3");
     System.out.println(matcher.find());
     System.out.println(matcher.group(3));
   }

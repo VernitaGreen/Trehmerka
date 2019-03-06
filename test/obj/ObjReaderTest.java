@@ -32,9 +32,15 @@ public class ObjReaderTest {
 
   @Test
   void testParseFile() throws IOException {
-    ObjReader.parseFile("obj/african_head.obj");
-    ObjReader.parseFile("obj/deer.obj");
-    ObjReader.parseFile("obj/millenium-falcon.obj");
+    List<Polygon> polygons;
 
+//    polygons = ObjReader.parseFile("obj/african_head.obj");
+//    assertEquals(2492, polygons.size());
+
+    polygons = ObjReader.parseFile("obj/deer.obj");
+    assertEquals(1508, polygons.size());
+
+//    polygons = ObjReader.parseFile("obj/millenium-falcon.obj");
+//    assertEquals(91187, polygons.size());
   }
 }
