@@ -37,10 +37,10 @@ public class ObjReaderTest {
 //    polygons = ObjReader.parseFile("obj/african_head.obj");
 //    assertEquals(2492, polygons.size());
 
-    polygons = ObjReader.parseFile("obj/deer.obj");
-    assertEquals(1508, polygons.size());
+//    polygons = ObjReader.parseFile("obj/deer.obj");
+//    assertEquals(1508, polygons.size());
 
-//    polygons = ObjReader.parseFile("obj/millenium-falcon.obj");
-//    assertEquals(91187, polygons.size());
+    polygons = ObjReader.parseFile("obj/millenium-falcon.obj");
+    assertEquals(91187, polygons.size());
   }
 }
