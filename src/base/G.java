@@ -55,13 +55,13 @@ public class G {
     return scale(v, 1.0 / norm(v));
   }
 
-  public Vector projectOnto(Vector v, Plane p) {
+  public static Vector projectOnto(Vector v, Plane p) {
     double a = dotProduct(subtract(v, p.r0), p.n);
 
     return subtract(v, scale(p.n, a));
   }
 
-  public Point3D projectOnto(Point3D a, Plane p) {
+  public static Point3D projectOnto(Point3D a, Plane p) {
     return new Point3D(projectOnto(a.rv, p));
   }
 
