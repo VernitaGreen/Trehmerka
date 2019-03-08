@@ -12,8 +12,20 @@ public class G {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
+  public static Vector vectorProduct(Vector a, Vector b) {
+    return new Vector(
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    );
+  }
+
   public static Vector add(Vector a, Vector b) {
     return new Vector(a.x + b.x, a.y + b.y, a.z + b.z);
+  }
+
+  public static Point3D add(Point3D a, Vector b) {
+    return new Point3D(add(a.rv, b));
   }
 
   public static Vector scale(Vector v, double alpha) {
@@ -22,6 +34,10 @@ public class G {
 
   public static Vector subtract(Vector a, Vector b) {
     return add(a, scale(b, -1));
+  }
+
+  public static Vector subtract(Point3D a, Point3D b) {
+    return subtract(a.rv, b.rv);
   }
 
   public static double norm(Vector v) {
