@@ -3,7 +3,6 @@ package base;
 public class G {
   static final double EPS = 1e-6;
 
-
   public static boolean doubleEquality(double a, double b) {
     return Math.abs(a - b) < EPS;
   }
@@ -38,6 +37,10 @@ public class G {
 
   public static Vector subtract(Point3D a, Point3D b) {
     return subtract(a.rv, b.rv);
+  }
+
+  public static double distanceBetween(Point3D a, Point3D b) {
+    return Math.sqrt(norm(subtract(a, b)));
   }
 
   public static double norm(Vector v) {
