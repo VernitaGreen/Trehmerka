@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import base.Polygon;
+import base.Util;
 import base.Vector;
 import io.InputReader;
 
@@ -84,19 +85,21 @@ public class ObjReader {
     return scaleShift01(polygons);
   }
 
-  private static Vector scaleShift01Vector(Vector v, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-    double newX = v.x - minX;
-    if (maxX > minX) {
-      newX /= maxX - minX;
+  private static Vector scaleShift01Vector(Vector v,
+                                           double minX, double minY, double minZ,
+                                           double maxX, double maxY, double maxZ) {
+    double factorX = maxX - minX;
+    double factorY = maxY - minY;
+    double factorZ = maxZ - minZ;
+
+    double maxFactor = Util.max(factorX, factorY, factorZ);
+    if (maxFactor == 0) {
+      maxFactor = 1;
     }
-    double newY = v.y - minY;
-    if (maxY > minY) {
-      newY /= maxY - minY;
-    }
-    double newZ = v.z - minZ;
-    if (maxZ > minZ) {
-      newZ /= maxZ - minZ;
-    }
+
+    double newX = (v.x - minX) / maxFactor + 0.5 - factorX / maxFactor / 2;
+    double newY = (v.x - minY) / maxFactor + 0.5 - factorY / maxFactor / 2;
+    double newZ = (v.x - minZ) / maxFactor + 0.5 - factorZ / maxFactor / 2;
 
     return new Vector(newX, newY, newZ);
   }
