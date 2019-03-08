@@ -98,8 +98,8 @@ public class ObjReader {
     }
 
     double newX = (v.x - minX) / maxFactor + 0.5 - factorX / maxFactor / 2;
-    double newY = (v.x - minY) / maxFactor + 0.5 - factorY / maxFactor / 2;
-    double newZ = (v.x - minZ) / maxFactor + 0.5 - factorZ / maxFactor / 2;
+    double newY = (v.y - minY) / maxFactor + 0.5 - factorY / maxFactor / 2;
+    double newZ = (v.z - minZ) / maxFactor + 0.5 - factorZ / maxFactor / 2;
 
     return new Vector(newX, newY, newZ);
   }
