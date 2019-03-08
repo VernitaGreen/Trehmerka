@@ -80,10 +80,72 @@ public class ObjReader {
         fc += 2;
       }
     }
-    System.out.println(vc);
-    System.out.println(fc);
 
-    return polygons;
+    return scaleShift01(polygons);
+  }
+
+  private static Vector scaleShift01Vector(Vector v, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    double newX = v.x - minX;
+    if (maxX > minX) {
+      newX /= maxX - minX;
+    }
+    double newY = v.y - minY;
+    if (maxY > minY) {
+      newY /= maxY - minY;
+    }
+    double newZ = v.z - minZ;
+    if (maxZ > minZ) {
+      newZ /= maxZ - minZ;
+    }
+
+    return new Vector(newX, newY, newZ);
+  }
+
+  private static List<Polygon> scaleShift01(List<Polygon> polygons) {
+    double minX = polygons.get(0).a.x;
+    double minY = polygons.get(0).a.y;
+    double minZ = polygons.get(0).a.z;
+    double maxX = minX;
+    double maxY = minY;
+    double maxZ = minZ;
+
+    for (Polygon polygon : polygons) {
+      minX = Math.min(minX, polygon.a.x);
+      minY = Math.min(minY, polygon.a.y);
+      minZ = Math.min(minZ, polygon.a.z);
+
+      minX = Math.min(minX, polygon.b.x);
+      minY = Math.min(minY, polygon.b.y);
+      minZ = Math.min(minZ, polygon.b.z);
+
+      minX = Math.min(minX, polygon.c.x);
+      minY = Math.min(minY, polygon.c.y);
+      minZ = Math.min(minZ, polygon.c.z);
+
+      maxX = Math.max(maxX, polygon.a.x);
+      maxY = Math.max(maxY, polygon.a.y);
+      maxZ = Math.max(maxZ, polygon.a.z);
+
+      maxX = Math.max(maxX, polygon.b.x);
+      maxY = Math.max(maxY, polygon.b.y);
+      maxZ = Math.max(maxZ, polygon.b.z);
+
+      maxX = Math.max(maxX, polygon.c.x);
+      maxY = Math.max(maxY, polygon.c.y);
+      maxZ = Math.max(maxZ, polygon.c.z);
+    }
+
+    List<Polygon> result = new ArrayList<>();
+
+    for (Polygon polygon : polygons) {
+      result.add(new Polygon(
+          scaleShift01Vector(polygon.a, minX, minY, minZ, maxX, maxY, maxZ),
+          scaleShift01Vector(polygon.b, minX, minY, minZ, maxX, maxY, maxZ),
+          scaleShift01Vector(polygon.c, minX, minY, minZ, maxX, maxY, maxZ)
+      ));
+    }
+
+    return result;
   }
 
   public static void main(String[] args) {
