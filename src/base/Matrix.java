@@ -80,6 +80,26 @@ public class Matrix {
     return res;
   }
 
+  public static Matrix extendAsIdentity(Matrix a, int n) {
+    if (a.n > n || a.n != a.m) {
+      throw new IllegalArgumentException();
+    }
+
+    Matrix res = Matrix.zero(n, n);
+
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        if (i < a.n && j < a.m) {
+          res.a[i][j] = a.a[i][j];
+        } else {
+          res.a[i][j] = i == j ? 1 : 0;
+        }
+      }
+    }
+
+    return res;
+  }
+
   public static Matrix add(Matrix a, Matrix b) {
     if (a.n != b.n || a.m != b.m) {
       throw new IllegalArgumentException();

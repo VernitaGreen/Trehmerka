@@ -11,16 +11,6 @@ public class Plane {
     this.n = n;
   }
 
-//  public Vector projectVector(Vector o) {
-//    double a = o.subtract(r0).dotProduct(n);
-//
-//    if (Vector.doubleEquality(a, 0)) { // in a parallel plane
-//      return null;
-//    }
-//
-//    return o.subtract(n.scale(a));
-//  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
