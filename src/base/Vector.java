@@ -4,6 +4,9 @@ import java.util.Objects;
 
 public class Vector {
   public static final Vector zero = new Vector(0, 0, 0);
+  public static final Vector oX = new Vector(1, 0, 0);
+  public static final Vector oY = new Vector(0, 1, 0);
+  public static final Vector oZ = new Vector(0, 0, 1);
 
   public final double x;
   public final double y;

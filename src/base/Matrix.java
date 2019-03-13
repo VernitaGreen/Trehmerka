@@ -134,6 +134,18 @@ public class Matrix {
     return res;
   }
 
+  public static Matrix multiply(Matrix a, double alpha) {
+    Matrix res = a.copy();
+
+    for (int i = 0; i < a.n; i++) {
+      for (int j = 0; j < a.m; j++) {
+        res.a[i][j] *= alpha;
+      }
+    }
+
+    return res;
+  }
+
   public static Vector multiply(Matrix a, Vector v) {
     if (a.n != 3) {
       throw new IllegalArgumentException();
