@@ -33,12 +33,12 @@ public class DrawOBJ {
         Arrays.fill(zBuffer[i], Double.MAX_VALUE);
       }
 
-      Point3D cameraPosition = new Point3D(0, 0, 0.5);
+      Point3D cameraPosition = new Point3D(0, 0.5, 0.5);
       Vector cameraDirection = new Vector(1, 0, 0);
 
       Vector cameraZ = G.normalize(cameraDirection);
-      Vector cameraX = G.normalize(G.vectorProduct(Vector.oY, cameraZ));
-      Vector cameraY = G.normalize(G.vectorProduct(cameraX, cameraZ));
+      Vector cameraX = G.normalize(G.vectorProduct(cameraZ, Vector.oY));
+      Vector cameraY = G.normalize(G.vectorProduct(cameraZ, cameraX));
 
       Matrix rotationMatrix = Matrix.rotationMatrix(
           Vector.oX, Vector.oY, Vector.oZ,
@@ -54,10 +54,6 @@ public class DrawOBJ {
           {0, f, n / 2},
           {0, 0, 1},
       });
-
-      Matrix transformationMatrix = Matrix.multiply(K, Rt);
-
-//      Point2D center = new Point2D(1.0 * n / 2, 1.0 * n / 2);
 
       for (Polygon polygon : polygons) {
 
