@@ -221,6 +221,24 @@ public class Matrix {
     return res;
   }
 
+  public static Matrix rotationMatrix(Vector x1, Vector y1, Vector z1,
+                                      Vector x2, Vector y2, Vector z2) {
+    x1 = G.normalize(x1);
+    y1 = G.normalize(y1);
+    z1 = G.normalize(z1);
+
+    x2 = G.normalize(x2);
+    y2 = G.normalize(y2);
+    z2 = G.normalize(z2);
+
+    double[][] a = {
+        {G.dotProduct(x2, x1), G.dotProduct(x2, y1), G.dotProduct(x2, z1)},
+        {G.dotProduct(y2, x1), G.dotProduct(y2, y1), G.dotProduct(y2, z1)},
+        {G.dotProduct(z2, x1), G.dotProduct(z2, y1), G.dotProduct(z2, z1)}
+    };
+    return new Matrix(a);
+  }
+
   public static Matrix fromVector(Vector v) {
     return fromValues(v.x, v.y, v.z);
   }

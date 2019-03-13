@@ -1,6 +1,5 @@
 package Risovalka;
 
-import Geoma.Geoma;
 import base.*;
 import base.Polygon;
 import obj.ObjReader;
@@ -21,78 +20,95 @@ public class DrawOBJ {
 //    String name = "millenium-falcon";
 //    String name = "african_head";
     try {
-      double max = 0;
-      double min = Double.MAX_VALUE;
+
       List<Polygon> polygons = ObjReader.parseFile("obj/" + name + ".obj");
       System.out.println(polygons.size());
-      for (int i = 0; i < polygons.size(); i++) {
 
-        max = Math.max(Math.max(max, polygons.get(i).a.x), Math.max(polygons.get(i).a.y, polygons.get(i).a.z));
-        max = Math.max(Math.max(max, polygons.get(i).b.x), Math.max(polygons.get(i).b.y, polygons.get(i).b.z));
-        max = Math.max(Math.max(max, polygons.get(i).c.x), Math.max(polygons.get(i).c.y, polygons.get(i).c.z));
-
-        min = Math.min(Math.min(min, polygons.get(i).a.x), Math.min(polygons.get(i).a.y, polygons.get(i).a.z));
-        min = Math.min(Math.min(min, polygons.get(i).b.x), Math.min(polygons.get(i).b.y, polygons.get(i).b.z));
-        min = Math.min(Math.min(min, polygons.get(i).c.x), Math.min(polygons.get(i).c.y, polygons.get(i).c.z));
-      }
-
-      System.out.println(min + " " + max);
-      int delta = (int) Math.abs(min) + 100;
       int n = 2000;
-      int m = 3000;
 
-      BufferedImage image = new BufferedImage(n, m, BufferedImage.TYPE_3BYTE_BGR);
-      double[][] zbuffer = new double[n][m];
+      BufferedImage image = new BufferedImage(n, n, BufferedImage.TYPE_INT_RGB);
+      double[][] zBuffer = new double[n][n];
       for (int i = 0; i < n; i++) {
-        Arrays.fill(zbuffer[i], Double.MAX_VALUE);
+        Arrays.fill(zBuffer[i], Double.MAX_VALUE);
       }
 
-      for (int i = 0; i < polygons.size(); i++) {
+      Point3D cameraPosition = new Point3D(0, 0, 0);
+      Vector cameraDirection = new Vector(0, 1, 1);
 
+      Vector cameraZ = G.normalize(cameraDirection);
+      Vector cameraX = G.normalize(G.vectorProduct(new Vector(0, 1, 0), cameraZ));
+      Vector cameraY = G.normalize(G.vectorProduct(cameraX, cameraZ));
 
-        Vector camera = new Vector(0, 0, 1);
+      Matrix rotationMatrix = Matrix.rotationMatrix(
+          new Vector(1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, 1),
+          cameraX, cameraY, cameraZ);
+      Matrix t = new Matrix(new double[][]{{-cameraPosition.rv.x}, {-cameraPosition.rv.y}, {-cameraPosition.rv.y}});
+      Matrix Rt = Matrix.concatenateJ(rotationMatrix, t);
 
-        Point2DInt a = new Point2DInt((int) (polygons.get(i).a.x + delta + 300), m - (int) (polygons.get(i).a.y + delta));
-        Point2DInt b = new Point2DInt((int) (polygons.get(i).b.x + delta + 300), m - (int) (polygons.get(i).b.y + delta));
-        Point2DInt c = new Point2DInt((int) (polygons.get(i).c.x + delta + 300), m - (int) (polygons.get(i).c.y + delta));
+      double[][] k = new double[3][3];
+      k[0][0] = n;
+      k[0][2] = n;
+      k[1][1] = n;
+      k[1][2] = n;
+      k[2][2] = 1;
+      Matrix K = new Matrix(k);
 
-        Vector va = G.subtract(polygons.get(i).a, polygons.get(i).c);
-        Vector vb = G.subtract(polygons.get(i).b, polygons.get(i).c);
+      Matrix transformationMatrix = Matrix.multiply(K, Rt);
+
+      Point2D center = new Point2D(1.0 * n / 2, 1.0 * n / 2);
+
+      for (Polygon polygon : polygons) {
+
+        Matrix a = Matrix.concatenateI(Matrix.fromVector(polygon.a), Matrix.eye(1));
+        Matrix b = Matrix.concatenateI(Matrix.fromVector(polygon.b), Matrix.eye(1));
+        Matrix c = Matrix.concatenateI(Matrix.fromVector(polygon.c), Matrix.eye(1));
+
+        a = Matrix.multiply(transformationMatrix, a);
+        b = Matrix.multiply(transformationMatrix, b);
+        c = Matrix.multiply(transformationMatrix, c);
+
+        Point2DInt a2d = new Point2DInt((int) Math.round(a.get(0, 0)), (int) Math.round(a.get(1, 0)));
+        Point2DInt b2d = new Point2DInt((int) Math.round(b.get(0, 0)), (int) Math.round(b.get(1, 0)));
+        Point2DInt c2d = new Point2DInt((int) Math.round(c.get(0, 0)), (int) Math.round(c.get(1, 0)));
+
+        Vector va = G.subtract(polygon.a, polygon.c);
+        Vector vb = G.subtract(polygon.b, polygon.c);
 
         // нормаль
-        Vector norm = new Vector(va.y * vb.z - va.z * vb.y,
-            va.z * vb.x - va.x * vb.z, va.x * vb.y - va.y * vb.x);
-        double p = norm.x * camera.x + norm.y * camera.y + norm.z * camera.z;
-        p /= G.norm(norm);
-        p /= G.norm(camera);
+        Vector normal = G.vectorProduct(va, vb);
+        double p = G.dotProduct(normal, cameraDirection);
+        p /= G.norm(normal);
+        p /= G.norm(cameraDirection);
         double angle = Math.acos(p);
         if (angle < Math.PI / 2 - 1e-2) {
           continue;
         }
 
-        int left = (int) Math.floor(Math.min(Math.min(a.x, b.x), c.x));
-        int right = (int) Math.ceil(Math.max(Math.max(a.x, b.x), c.x));
-        int bot = (int) Math.floor(Math.min(Math.min(a.y, b.y), c.y));
-        int top = (int) Math.ceil(Math.max(Math.max(a.y, b.y), c.y));
+        int left = Util.min(a2d.x, b2d.x, c2d.x);
+        int right = Util.max(a2d.x, b2d.x, c2d.x);
+        int bot = Util.min(a2d.y, b2d.y, c2d.y);
+        int top = Util.max(a2d.y, b2d.y, c2d.y);
+
+        Vector rotatedA =
 
         for (int x = left; x < right; x++) {
           for (int y = bot; y < top; y++) {
-            double lambda0 = (1.0 * (y - c.y) * (b.x - c.x) - (x - c.x) * (b.y - c.y)) /
-                ((a.y - c.y) * (b.x - c.x) - (a.x - c.x) * (b.y - c.y));
-            double lambda1 = (1.0 * (y - a.y) * (c.x - a.x) - (x - a.x) * (c.y - a.y)) /
-                ((b.y - a.y) * (c.x - a.x) - (b.x - a.x) * (c.y - a.y));
-            double lambda2 = (1.0 * (y - b.y) * (a.x - b.x) - (x - b.x) * (a.y - b.y)) /
-                ((c.y - b.y) * (a.x - b.x) - (c.x - b.x) * (a.y - b.y));
+            double lambda0 = (1.0 * (y - c2d.y) * (b2d.x - c2d.x) - (x - c2d.x) * (b2d.y - c2d.y)) /
+                ((a2d.y - c2d.y) * (b2d.x - c2d.x) - (a2d.x - c2d.x) * (b2d.y - c2d.y));
+            double lambda1 = (1.0 * (y - a2d.y) * (c2d.x - a2d.x) - (x - a2d.x) * (c2d.y - a2d.y)) /
+                ((b2d.y - a2d.y) * (c2d.x - a2d.x) - (b2d.x - a2d.x) * (c2d.y - a2d.y));
+            double lambda2 = (1.0 * (y - b2d.y) * (a2d.x - b2d.x) - (x - b2d.x) * (a2d.y - b2d.y)) /
+                ((c2d.y - b2d.y) * (a2d.x - b2d.x) - (c2d.x - b2d.x) * (a2d.y - b2d.y));
 
             if (lambda0 < 0 || lambda1 < 0 || lambda2 < 0) {
               continue;
             }
 
-            double z = (polygons.get(i).a.z + delta) * lambda0
-                + (polygons.get(i).b.z + delta) * lambda1 + (polygons.get(i).c.z + delta) * lambda2;
+            double z = (polygon.a.x * n) * lambda0
+                + (polygon.b.x * n) * lambda1 + (polygon.c.x * n) * lambda2;
 
-            if (z < zbuffer[x][y]) {
-              zbuffer[x][y] = z;
+            if (z < zBuffer[x][y]) {
+              zBuffer[x][y] = z;
               int color = (int) Math.min(255, (255 * (angle / Math.PI)));
 //              int color = 255;
               image.setRGB(x, y, new Color(color, color, color).getRGB());
