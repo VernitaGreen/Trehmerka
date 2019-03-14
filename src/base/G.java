@@ -48,11 +48,15 @@ public class G {
   }
 
   public static Vector normalize(Vector v) {
-    if (doubleEquality(norm(v), 0)) {
+    if (isZero(v)) {
       throw new IllegalArgumentException("Trying to normalize a zero vector");
     }
 
     return scale(v, 1.0 / norm(v));
+  }
+
+  public static boolean isZero(Vector v) {
+    return doubleEquality(norm(v), 0);
   }
 
   public static Vector projectOnto(Vector v, Plane p) {

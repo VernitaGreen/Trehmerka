@@ -1,5 +1,7 @@
 package base;
 
+import java.util.Arrays;
+
 public class Matrix {
   public final int n;
   public final int m;
@@ -233,6 +235,18 @@ public class Matrix {
     return res;
   }
 
+  public static Matrix fromVector(Vector v) {
+    return fromValues(v.x, v.y, v.z);
+  }
+
+  public static Vector toVector(Matrix a) {
+    if (a.n != 3 || a.m != 1) {
+      throw new IllegalArgumentException();
+    }
+
+    return new Vector(a.get(0, 0), a.get(1, 0), a.get(2, 0));
+  }
+
   public static Matrix rotationMatrix(Vector x1, Vector y1, Vector z1,
                                       Vector x2, Vector y2, Vector z2) {
     x1 = G.normalize(x1);
@@ -251,7 +265,27 @@ public class Matrix {
     return new Matrix(a);
   }
 
-  public static Matrix fromVector(Vector v) {
-    return fromValues(v.x, v.y, v.z);
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+
+    sb.append(String.format("Matrix[%d, %d] = [\n", n, m));
+
+    for (int i = 0; i < n; i++) {
+      sb.append("  [");
+
+      for (int j = 0; j < m; j++) {
+        sb.append(String.format("%+10.4f", a[i][j]));
+        if (j < m - 1) {
+          sb.append(", ");
+        }
+      }
+
+      sb.append("]\n");
+    }
+
+    sb.append("]");
+
+    return sb.toString();
   }
 }
