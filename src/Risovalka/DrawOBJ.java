@@ -18,9 +18,8 @@ public class DrawOBJ {
   public static void main(String[] args) {
     Random rnd = new Random();
 //    String name = "deer";
-//    String name = "millenium-falcon";
+    String name = "millenium-falcon";
 //    String name = "african_head";
-    String name = "Quarren Coyote Ship";
     try {
 
       List<Polygon> polygons = ObjReader.parseFile("obj/" + name + ".obj");
@@ -34,22 +33,22 @@ public class DrawOBJ {
         Arrays.fill(zBuffer[i], Double.MAX_VALUE);
       }
 
-      Point3D cameraPosition = new Point3D(1, 1, 1);
-      Vector cameraDirection = new Vector(-1, -1, -1);
+      Point3D cameraPosition = new Point3D(0, 0, 1);
+      Vector cameraDirection = new Vector(1, 1, -1);
+      cameraDirection = G.normalize(cameraDirection);
 
-      Vector cameraZ = G.normalize(cameraDirection);
+      Vector cameraZ = cameraDirection;
       Vector cameraX = G.normalize(G.vectorProduct(cameraZ, Vector.oY));
       Vector cameraY = G.normalize(G.vectorProduct(cameraZ, cameraX));
 
-      Matrix rotationMatrix = Matrix.rotationMatrix(
+      Matrix R = Matrix.rotationMatrix(
           Vector.oX, Vector.oY, Vector.oZ,
           cameraX, cameraY, cameraZ);
       Matrix C = Matrix.fromVector(cameraPosition.rv);
-      Matrix t = Matrix.multiply(rotationMatrix, Matrix.multiply(C, -1));
+      Matrix t = Matrix.multiply(R, Matrix.multiply(C, -1));
 
-      Matrix Rt = Matrix.concatenateJ(rotationMatrix, t);
+      Matrix Rt = Matrix.concatenateJ(R, t);
 
-//      f = c / tan(alpha / 2)
       double f = n / 2.0;
       Matrix K = new Matrix(new double[][]{
           {f, 0, n / 2.0},
@@ -61,6 +60,10 @@ public class DrawOBJ {
         Matrix aOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.a), Matrix.eye(1));
         Matrix bOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.b), Matrix.eye(1));
         Matrix cOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.c), Matrix.eye(1));
+
+        Vector aNormalRotated = Matrix.toVector(Matrix.multiply(R, Matrix.fromVector(polygon.aNormal)));
+        Vector bNormalRotated = Matrix.toVector(Matrix.multiply(R, Matrix.fromVector(polygon.bNormal)));
+        Vector cNormalRotated = Matrix.toVector(Matrix.multiply(R, Matrix.fromVector(polygon.cNormal)));
 
         Matrix aRotatedShifted = Matrix.multiply(Rt, aOriginal);
         Matrix bRotatedShifted = Matrix.multiply(Rt, bOriginal);
@@ -81,15 +84,6 @@ public class DrawOBJ {
         Vector va = G.subtract(polygon.a, polygon.c);
         Vector vb = G.subtract(polygon.b, polygon.c);
 
-        // нормаль
-        Vector normal = G.vectorProduct(va, vb);
-        double p = G.dotProduct(normal, cameraDirection);
-        p /= G.norm(normal);
-        p /= G.norm(cameraDirection);
-        double angle = Math.acos(p);
-        if (angle < Math.PI / 2 - 1e-2) {
-          continue;
-        }
 
         int left = Util.max(Util.min(a2d.x, b2d.x, c2d.x), 0);
         int right = Util.min(Util.max(a2d.x, b2d.x, c2d.x), n);
@@ -131,9 +125,28 @@ public class DrawOBJ {
                 + cRotatedShifted.get(2, 0) * lambda2;
 
             if (z < zBuffer[x][y]) {
+              Vector normal = Vector.zero;
+              normal = G.add(normal, G.scale(aNormalRotated, lambda0));
+              normal = G.add(normal, G.scale(bNormalRotated, lambda1));
+              normal = G.add(normal, G.scale(cNormalRotated, lambda2));
+
+              if (G.isZero(normal)) {
+                continue;
+              }
+              normal = G.normalize(normal);
+
+              double p = G.dotProduct(normal, G.scale(Vector.oZ, -1));
+//              double angle = Math.acos(p);
+//              if (angle < Math.PI / 2 - 1e-2) {
+//                continue;
+//              }
+              if (p < 0) {
+                continue;
+              }
+
               zBuffer[x][y] = z;
-              int color = (int) Math.min(255, (255 * (angle / Math.PI)));
-//              int color = 255;
+//              int color = (int) Math.min(255, (255 * (angle / Math.PI)));
+              int color = (int) (255 * p);
               image.setRGB(x, y, new Color(color, color, color).getRGB());
             }
           }

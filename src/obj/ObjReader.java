@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import base.G;
 import base.Polygon;
 import base.Util;
 import base.Vector;
@@ -12,20 +13,20 @@ import io.InputReader;
 
 public class ObjReader {
   static Pattern vertexPattern = Pattern.compile("v\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
-  static Pattern vertexTexturePattern = Pattern.compile("vt\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
-  static Pattern vertexNormalPattern = Pattern.compile("vn\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
+  static Pattern normalVectorPattern = Pattern.compile("vn\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
   static Pattern polygonPattern3 = Pattern.compile("f\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
   static Pattern polygonPattern4 = Pattern.compile("f\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
+
+  static Pattern vertexTexturePattern = Pattern.compile("vt\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
 
   public static List<Polygon> parseFile(String filename) {
     InputReader in = new InputReader(filename);
 
     List<Polygon> polygons = new ArrayList<>();
-    List<Vector> vectors = new ArrayList<>();
+    List<Vector> vertices = new ArrayList<>();
+    List<Vector> normalVectors = new ArrayList<>();
 
     Matcher m;
-    int vc = 0;
-    int fc = 0;
 
     while (true) {
       String line = in.nextLine();
@@ -42,43 +43,77 @@ public class ObjReader {
         double y = Double.parseDouble(m.group(2));
         double z = Double.parseDouble(m.group(3));
 
-        vectors.add(new Vector(x, y, z));
-        vc++;
+        vertices.add(new Vector(x, y, z));
+        continue;
+      }
+
+      m = normalVectorPattern.matcher(line);
+      if (m.matches()) {
+        double x = Double.parseDouble(m.group(1));
+        double y = Double.parseDouble(m.group(2));
+        double z = Double.parseDouble(m.group(3));
+
+        normalVectors.add(new Vector(x, y, z));
         continue;
       }
 
       m = polygonPattern3.matcher(line);
       if (m.matches()) {
-        int v1_i = Integer.parseInt(m.group(1).split("/")[0]);
-        int v2_i = Integer.parseInt(m.group(2).split("/")[0]);
-        int v3_i = Integer.parseInt(m.group(3).split("/")[0]);
+        String[] parts1 = m.group(1).split("/");
+        String[] parts2 = m.group(2).split("/");
+        String[] parts3 = m.group(3).split("/");
+
+        Vector vertex1 = vertices.get(Integer.parseInt(parts1[0]) - 1);
+        Vector vertex2 = vertices.get(Integer.parseInt(parts2[0]) - 1);
+        Vector vertex3 = vertices.get(Integer.parseInt(parts3[0]) - 1);
+
+        Vector normal1 = normalVectors.get(Integer.parseInt(parts1[2]) - 1);
+        Vector normal2 = normalVectors.get(Integer.parseInt(parts2[2]) - 1);
+        Vector normal3 = normalVectors.get(Integer.parseInt(parts3[2]) - 1);
 
         polygons.add(new Polygon(
-            vectors.get(v1_i - 1),
-            vectors.get(v2_i - 1),
-            vectors.get(v3_i - 1)
+            vertex1,
+            vertex2,
+            vertex3,
+            normal1,
+            normal2,
+            normal3
         ));
-        fc++;
       }
 
       m = polygonPattern4.matcher(line);
       if (m.matches()) {
-        int v1_i = Integer.parseInt(m.group(1).split("/")[0]);
-        int v2_i = Integer.parseInt(m.group(2).split("/")[0]);
-        int v3_i = Integer.parseInt(m.group(3).split("/")[0]);
-        int v4_i = Integer.parseInt(m.group(4).split("/")[0]);
+        String[] parts1 = m.group(1).split("/");
+        String[] parts2 = m.group(2).split("/");
+        String[] parts3 = m.group(3).split("/");
+        String[] parts4 = m.group(4).split("/");
+
+        Vector vertex1 = vertices.get(Integer.parseInt(parts1[0]) - 1);
+        Vector vertex2 = vertices.get(Integer.parseInt(parts2[0]) - 1);
+        Vector vertex3 = vertices.get(Integer.parseInt(parts3[0]) - 1);
+        Vector vertex4 = vertices.get(Integer.parseInt(parts4[0]) - 1);
+
+        Vector normal1 = normalVectors.get(Integer.parseInt(parts1[2]) - 1);
+        Vector normal2 = normalVectors.get(Integer.parseInt(parts2[2]) - 1);
+        Vector normal3 = normalVectors.get(Integer.parseInt(parts3[2]) - 1);
+        Vector normal4 = normalVectors.get(Integer.parseInt(parts4[2]) - 1);
 
         polygons.add(new Polygon(
-            vectors.get(v1_i - 1),
-            vectors.get(v2_i - 1),
-            vectors.get(v3_i - 1)
+            vertex1,
+            vertex2,
+            vertex3,
+            normal1,
+            normal2,
+            normal3
         ));
         polygons.add(new Polygon(
-            vectors.get(v1_i - 1),
-            vectors.get(v3_i - 1),
-            vectors.get(v4_i - 1)
+            vertex1,
+            vertex3,
+            vertex4,
+            normal1,
+            normal3,
+            normal4
         ));
-        fc += 2;
       }
     }
 
@@ -144,7 +179,10 @@ public class ObjReader {
       result.add(new Polygon(
           scaleShift01Vector(polygon.a, minX, minY, minZ, maxX, maxY, maxZ),
           scaleShift01Vector(polygon.b, minX, minY, minZ, maxX, maxY, maxZ),
-          scaleShift01Vector(polygon.c, minX, minY, minZ, maxX, maxY, maxZ)
+          scaleShift01Vector(polygon.c, minX, minY, minZ, maxX, maxY, maxZ),
+          G.normalize(polygon.aNormal),
+          G.normalize(polygon.bNormal),
+          G.normalize(polygon.cNormal)
       ));
     }
 
