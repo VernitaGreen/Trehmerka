@@ -1,7 +1,9 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,12 +21,56 @@ public class ObjReader {
 
   static Pattern vertexTexturePattern = Pattern.compile("vt\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
 
+  static class PolygonIndices {
+    public final Integer a;
+    public final Integer b;
+    public final Integer c;
+
+    public final Integer textureA;
+    public final Integer textureB;
+    public final Integer textureC;
+
+    public final Integer normalA;
+    public final Integer normalB;
+    public final Integer normalC;
+
+    PolygonIndices(String a, String b, String c) {
+      String[] partsA = a.split("/");
+      String[] partsB = b.split("/");
+      String[] partsC = c.split("/");
+
+      this.a = Integer.parseInt(partsA[0]) - 1;
+      this.b = Integer.parseInt(partsB[0]) - 1;
+      this.c = Integer.parseInt(partsC[0]) - 1;
+
+      if (partsA.length >= 2) {
+        this.textureA = Integer.parseInt(partsA[1]) - 1;
+        this.textureB = Integer.parseInt(partsB[1]) - 1;
+        this.textureC = Integer.parseInt(partsC[1]) - 1;
+      } else {
+        this.textureA = null;
+        this.textureB = null;
+        this.textureC = null;
+      }
+
+      if (partsA.length >= 3) {
+        this.normalA = Integer.parseInt(partsA[2]) - 1;
+        this.normalB = Integer.parseInt(partsB[2]) - 1;
+        this.normalC = Integer.parseInt(partsC[2]) - 1;
+      } else {
+        this.normalA = null;
+        this.normalB = null;
+        this.normalC = null;
+      }
+    }
+  }
+
   public static List<Polygon> parseFile(String filename) {
     InputReader in = new InputReader(filename);
 
-    List<Polygon> polygons = new ArrayList<>();
     List<Vector> vertices = new ArrayList<>();
     List<Vector> normalVectors = new ArrayList<>();
+    List<PolygonIndices> polygonIndices = new ArrayList<>();
 
     Matcher m;
 
@@ -59,62 +105,91 @@ public class ObjReader {
 
       m = polygonPattern3.matcher(line);
       if (m.matches()) {
-        String[] parts1 = m.group(1).split("/");
-        String[] parts2 = m.group(2).split("/");
-        String[] parts3 = m.group(3).split("/");
-
-        Vector vertex1 = vertices.get(Integer.parseInt(parts1[0]) - 1);
-        Vector vertex2 = vertices.get(Integer.parseInt(parts2[0]) - 1);
-        Vector vertex3 = vertices.get(Integer.parseInt(parts3[0]) - 1);
-
-        Vector normal1 = normalVectors.get(Integer.parseInt(parts1[2]) - 1);
-        Vector normal2 = normalVectors.get(Integer.parseInt(parts2[2]) - 1);
-        Vector normal3 = normalVectors.get(Integer.parseInt(parts3[2]) - 1);
-
-        polygons.add(new Polygon(
-            vertex1,
-            vertex2,
-            vertex3,
-            normal1,
-            normal2,
-            normal3
+        polygonIndices.add(new PolygonIndices(
+            m.group(1),
+            m.group(2),
+            m.group(3)
         ));
       }
 
       m = polygonPattern4.matcher(line);
       if (m.matches()) {
-        String[] parts1 = m.group(1).split("/");
-        String[] parts2 = m.group(2).split("/");
-        String[] parts3 = m.group(3).split("/");
-        String[] parts4 = m.group(4).split("/");
-
-        Vector vertex1 = vertices.get(Integer.parseInt(parts1[0]) - 1);
-        Vector vertex2 = vertices.get(Integer.parseInt(parts2[0]) - 1);
-        Vector vertex3 = vertices.get(Integer.parseInt(parts3[0]) - 1);
-        Vector vertex4 = vertices.get(Integer.parseInt(parts4[0]) - 1);
-
-        Vector normal1 = normalVectors.get(Integer.parseInt(parts1[2]) - 1);
-        Vector normal2 = normalVectors.get(Integer.parseInt(parts2[2]) - 1);
-        Vector normal3 = normalVectors.get(Integer.parseInt(parts3[2]) - 1);
-        Vector normal4 = normalVectors.get(Integer.parseInt(parts4[2]) - 1);
-
-        polygons.add(new Polygon(
-            vertex1,
-            vertex2,
-            vertex3,
-            normal1,
-            normal2,
-            normal3
+        polygonIndices.add(new PolygonIndices(
+            m.group(1),
+            m.group(2),
+            m.group(3)
         ));
-        polygons.add(new Polygon(
-            vertex1,
-            vertex3,
-            vertex4,
-            normal1,
-            normal3,
-            normal4
+        polygonIndices.add(new PolygonIndices(
+            m.group(1),
+            m.group(2),
+            m.group(4)
         ));
       }
+    }
+
+    Map<Integer, List<Integer>> vertexToTouchingPolygons = new HashMap<>();
+    for (int i = 0; i < vertices.size(); i++) {
+      vertexToTouchingPolygons.put(i, new ArrayList<>());
+    }
+
+    List<Vector> computedPolygonNormals = new ArrayList<>();
+    for (int i = 0; i < polygonIndices.size(); i++) {
+      PolygonIndices poly = polygonIndices.get(i);
+      vertexToTouchingPolygons.get(poly.a).add(i);
+      vertexToTouchingPolygons.get(poly.b).add(i);
+      vertexToTouchingPolygons.get(poly.c).add(i);
+
+      Vector a = vertices.get(poly.a);
+      Vector b = vertices.get(poly.b);
+      Vector c = vertices.get(poly.c);
+
+      Vector ab = G.subtract(b, a);
+      Vector ac = G.subtract(c, a);
+      Vector normal = G.vectorProduct(ab, ac);
+      normal = G.normalize(normal);
+
+      computedPolygonNormals.add(normal);
+    }
+
+    List<Vector> computedVertexNormals = new ArrayList<>();
+    for (int i = 0; i < vertices.size(); i++) {
+      Vector normal = Vector.zero;
+
+      List<Integer> touchingPolygons = vertexToTouchingPolygons.get(i);
+
+      for (Integer touchingPolygonIndex : touchingPolygons) {
+        normal = G.add(normal, computedPolygonNormals.get(touchingPolygonIndex));
+      }
+
+      if (G.isZero(normal)) {
+        System.out.println("BAD");
+        normal = Vector.oX;
+      }
+
+      normal = G.normalize(normal);
+      computedVertexNormals.add(normal);
+    }
+
+    List<Polygon> polygons = new ArrayList<>();
+
+    for (PolygonIndices poly : polygonIndices) {
+      Vector a = vertices.get(poly.a);
+      Vector b = vertices.get(poly.b);
+      Vector c = vertices.get(poly.c);
+
+      Vector aNormal = computedVertexNormals.get(poly.a);
+      Vector bNormal = computedVertexNormals.get(poly.b);
+      Vector cNormal = computedVertexNormals.get(poly.c);
+
+      if (poly.normalA != null) {
+        aNormal = normalVectors.get(poly.a);
+        bNormal = normalVectors.get(poly.b);
+        cNormal = normalVectors.get(poly.c);
+      }
+
+      polygons.add(new Polygon(
+          a, b, c, aNormal, bNormal, cNormal
+      ));
     }
 
     return scaleShift01(polygons);
