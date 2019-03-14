@@ -17,9 +17,9 @@ import java.util.Random;
 public class DrawOBJ {
   public static void main(String[] args) {
     Random rnd = new Random();
-    String name = "deer";
+//    String name = "deer";
 //    String name = "millenium-falcon";
-//    String name = "african_head";
+    String name = "african_head";
     try {
 
       List<Polygon> polygons = ObjReader.parseFile("obj/" + name + ".obj");
@@ -33,8 +33,8 @@ public class DrawOBJ {
         Arrays.fill(zBuffer[i], Double.MAX_VALUE);
       }
 
-      Point3D cameraPosition = new Point3D(0, 0.5, 0.5);
-      Vector cameraDirection = new Vector(1, 0, 0);
+      Point3D cameraPosition = new Point3D(1, 1, 1);
+      Vector cameraDirection = new Vector(-1, -1, -1);
 
       Vector cameraZ = G.normalize(cameraDirection);
       Vector cameraX = G.normalize(G.vectorProduct(cameraZ, Vector.oY));
@@ -48,15 +48,14 @@ public class DrawOBJ {
 
       Matrix Rt = Matrix.concatenateJ(rotationMatrix, t);
 
-      double f = n;
+      double f = n / 2.0;
       Matrix K = new Matrix(new double[][]{
-          {f, 0, n / 2},
-          {0, f, n / 2},
+          {f, 0, n / 2.0},
+          {0, f, n / 2.0},
           {0, 0, 1},
       });
 
       for (Polygon polygon : polygons) {
-
         Matrix aOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.a), Matrix.eye(1));
         Matrix bOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.b), Matrix.eye(1));
         Matrix cOriginal = Matrix.concatenateI(Matrix.fromVector(polygon.c), Matrix.eye(1));
@@ -69,6 +68,10 @@ public class DrawOBJ {
         Matrix bProjected = Matrix.multiply(K, bRotatedShifted);
         Matrix cProjected = Matrix.multiply(K, cRotatedShifted);
 
+        aProjected = Matrix.multiply(aProjected, 1 / aProjected.get(2, 0));
+        bProjected = Matrix.multiply(bProjected, 1 / bProjected.get(2, 0));
+        cProjected = Matrix.multiply(cProjected, 1 / cProjected.get(2, 0));
+
         Point2DInt a2d = new Point2DInt((int) Math.round(aProjected.get(0, 0)), (int) Math.round(aProjected.get(1, 0)));
         Point2DInt b2d = new Point2DInt((int) Math.round(bProjected.get(0, 0)), (int) Math.round(bProjected.get(1, 0)));
         Point2DInt c2d = new Point2DInt((int) Math.round(cProjected.get(0, 0)), (int) Math.round(cProjected.get(1, 0)));
@@ -76,63 +79,63 @@ public class DrawOBJ {
         Vector va = G.subtract(polygon.a, polygon.c);
         Vector vb = G.subtract(polygon.b, polygon.c);
 
-//        // нормаль
-//        Vector normal = G.vectorProduct(va, vb);
-//        double p = G.dotProduct(normal, cameraDirection);
-//        p /= G.norm(normal);
-//        p /= G.norm(cameraDirection);
-//        double angle = Math.acos(p);
-//        if (angle < Math.PI / 2 - 1e-2) {
-//          continue;
-//        }
-
-        try {
-          DrawLine.drawWuLine(a2d, b2d, image);
-        } catch (Exception e) {
-
-        }
-        try {
-          DrawLine.drawWuLine(b2d, c2d, image);
-        } catch (Exception e) {
-        }
-        try {
-          DrawLine.drawWuLine(c2d, b2d, image);
-        } catch (Exception e) {
-
+        // нормаль
+        Vector normal = G.vectorProduct(va, vb);
+        double p = G.dotProduct(normal, cameraDirection);
+        p /= G.norm(normal);
+        p /= G.norm(cameraDirection);
+        double angle = Math.acos(p);
+        if (angle < Math.PI / 2 - 1e-2) {
+          continue;
         }
 
-//        int left = Util.min(a2d.x, b2d.x, c2d.x);
-//        int right = Util.max(a2d.x, b2d.x, c2d.x);
-//        int bottom = Util.min(a2d.y, b2d.y, c2d.y);
-//        int top = Util.max(a2d.y, b2d.y, c2d.y);
-//
-//        for (int x = left; x < right; x++) {
-//          for (int y = bottom; y < top; y++) {
-//            double lambda0 = (1.0 * (y - c2d.y) * (b2d.x - c2d.x) - (x - c2d.x) * (b2d.y - c2d.y)) /
-//                ((a2d.y - c2d.y) * (b2d.x - c2d.x) - (a2d.x - c2d.x) * (b2d.y - c2d.y));
-//            double lambda1 = (1.0 * (y - a2d.y) * (c2d.x - a2d.x) - (x - a2d.x) * (c2d.y - a2d.y)) /
-//                ((b2d.y - a2d.y) * (c2d.x - a2d.x) - (b2d.x - a2d.x) * (c2d.y - a2d.y));
-//            double lambda2 = (1.0 * (y - b2d.y) * (a2d.x - b2d.x) - (x - b2d.x) * (a2d.y - b2d.y)) /
-//                ((c2d.y - b2d.y) * (a2d.x - b2d.x) - (c2d.x - b2d.x) * (a2d.y - b2d.y));
-//
-//            if (lambda0 < 0 || lambda1 < 0 || lambda2 < 0
-//                || x < 0 || y < 0
-//                || x >= n || y >= n) {
-//              continue;
-//            }
-//
-//            double z = aRotatedShifted.get(2, 0) * lambda0
-//                + bRotatedShifted.get(2, 0) * lambda1
-//                + cRotatedShifted.get(2, 0) * lambda2;
-//
-//            if (z < zBuffer[x][y]) {
-//              zBuffer[x][y] = z;
-//              int color = (int) Math.min(255, (255 * (angle / Math.PI)));
-////              int color = 255;
-//              image.setRGB(x, y, new Color(color, color, color).getRGB());
-//            }
-//          }
-//        }
+        int left = Util.max(Util.min(a2d.x, b2d.x, c2d.x), 0);
+        int right = Util.min(Util.max(a2d.x, b2d.x, c2d.x), n);
+        int bottom = Util.max(Util.min(a2d.y, b2d.y, c2d.y), 0);
+        int top = Util.min(Util.max(a2d.y, b2d.y, c2d.y), n);
+
+        for (int x = left; x < right; x++) {
+          for (int y = bottom; y < top; y++) {
+            double lambda0 =
+                (
+                    1.0 * (y - c2d.y) * (b2d.x - c2d.x)
+                        - (x - c2d.x) * (b2d.y - c2d.y)
+                ) / (
+                    (a2d.y - c2d.y) * (b2d.x - c2d.x)
+                        - (a2d.x - c2d.x) * (b2d.y - c2d.y)
+                );
+            double lambda1 =
+                (
+                    1.0 * (y - a2d.y) * (c2d.x - a2d.x) - (x - a2d.x) * (c2d.y - a2d.y)
+                ) / (
+                    (b2d.y - a2d.y) * (c2d.x - a2d.x)
+                        - (b2d.x - a2d.x) * (c2d.y - a2d.y)
+                );
+            double lambda2 =
+                (
+                    1.0 * (y - b2d.y) * (a2d.x - b2d.x)
+                        - (x - b2d.x) * (a2d.y - b2d.y)
+                ) / (
+                    (c2d.y - b2d.y) * (a2d.x - b2d.x)
+                        - (c2d.x - b2d.x) * (a2d.y - b2d.y)
+                );
+
+            if (lambda0 < 0 || lambda1 < 0 || lambda2 < 0) {
+              continue;
+            }
+
+            double z = aRotatedShifted.get(2, 0) * lambda0
+                + bRotatedShifted.get(2, 0) * lambda1
+                + cRotatedShifted.get(2, 0) * lambda2;
+
+            if (z < zBuffer[x][y]) {
+              zBuffer[x][y] = z;
+              int color = (int) Math.min(255, (255 * (angle / Math.PI)));
+//              int color = 255;
+              image.setRGB(x, y, new Color(color, color, color).getRGB());
+            }
+          }
+        }
       }
       File outputfile = new File(name + ".png");
       try {
