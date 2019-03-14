@@ -19,7 +19,8 @@ public class DrawOBJ {
     Random rnd = new Random();
 //    String name = "deer";
 //    String name = "millenium-falcon";
-    String name = "african_head";
+//    String name = "african_head";
+    String name = "Quarren Coyote Ship";
     try {
 
       List<Polygon> polygons = ObjReader.parseFile("obj/" + name + ".obj");
@@ -48,6 +49,7 @@ public class DrawOBJ {
 
       Matrix Rt = Matrix.concatenateJ(rotationMatrix, t);
 
+//      f = c / tan(alpha / 2)
       double f = n / 2.0;
       Matrix K = new Matrix(new double[][]{
           {f, 0, n / 2.0},
